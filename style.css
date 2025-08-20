@@ -1,0 +1,26 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, sans-serif;
+  color: #fff;
+  text-align: center;
+
+  /* фон */
+  background-color: #000;
+  background-image: url("images/maya-calendar.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+h1 {
+  margin-top: 20vh;
+  font-size: 3rem;
+  text-shadow: 2px 2px 5px #000;
+}
+
+p {
+  font-size: 1.2rem;
+  text-shadow: 1px 1px 3px #000;
+}

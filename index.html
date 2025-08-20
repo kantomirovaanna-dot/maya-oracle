@@ -1,13 +1,159 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Maya Oracle</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>Maya Cocktail Oracle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-family: system-ui, sans-serif;
+  color: #fff;
+  box-sizing: border-box;
+  text-align: center;
+  background-color: #000;
+  background-image: url("maya-background.png"); /* твоя картинка */
+  background-size: 400px 400px;
+}
+*, *:before, *:after { box-sizing: border-box; }
+
+.card {
+  max-width: 600px;
+  margin: 20px auto;
+  background: rgba(0,0,0,0.7);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(255,255,255,0.1);
+}
+
+h1{font-size:1.6rem; margin:0 0 6px;}
+.sub{font-size:.95rem; color:#ccc; margin-bottom:16px;}
+input, button{
+  padding:12px;
+  font-size:1rem;
+  border-radius:10px;
+  border:1.5px solid #fff;
+  outline:none;
+  width: 100%;
+  background:#111;
+  color:#fff;
+}
+button{
+  margin-top:10px;
+  background:#fff;
+  color:#000;
+  border:none;
+  font-weight:700;
+  cursor:pointer;
+}
+button:hover{filter:brightness(0.9);}
+.result{margin-top:18px;text-align:left;background:rgba(0,0,0,0.8); border:1px solid #fff; padding:16px;border-radius:12px;}
+.row{margin:6px 0;}
+.label{font-weight:700;}
+.muted{color:#ccc;font-size:.95rem;}
+.lang{display:flex;gap:8px;justify-content:center;margin-bottom:10px;}
+.lang button{width:auto;padding:8px 12px;background:#333;border:none;color:#fff;font-weight:600;}
+</style>
 </head>
 <body>
-  <h1>🌞 Добро пожаловать в Maya Oracle</h1>
-  <p>Ваш путь по календарю Майя начинается здесь.</p>
+<div class="card">
+  <div class="lang">
+    <button id="toEN">EN</button>
+    <button id="toSR">SRB</button>
+  </div>
+  <h1 id="title">Maya Cocktail Oracle</h1>
+  <div class="sub" id="subtitle">Enter your birthday to reveal your energy, day sign and a cocktail recommendation.</div>
+
+  <input type="date" id="birthdate" min="1920-01-01" max="2025-12-31" />
+  <button id="reveal">Reveal</button>
+
+  <div id="result" class="result" style="display:none;"></div>
+</div>
+
+<script>
+let lang = 'en';
+const ui = {
+  en: {title:"Maya Cocktail Oracle", sub:"Enter your birthday to reveal your energy, day sign and a cocktail recommendation.", btn:"Reveal", out_symbol:"Day Sign", out_energy:"Energy", out_cocktail:"Your Cocktail", out_comp:"Composition", out_wish:"Wish for you"},
+  sr: {title:"Majansko koktel proricanje", sub:"Unesi datum rođenja da otkriješ svoju energiju, dan-simbol i preporučeni koktel.", btn:"Otkrij", out_symbol:"Simbol dana", out_energy:"Energija", out_cocktail:"Tvoj koktel", out_comp:"Sastav", out_wish:"Želja za tebe"}
+};
+document.getElementById('toEN').onclick = ()=>setLang('en');
+document.getElementById('toSR').onclick = ()=>setLang('sr');
+function setLang(l){
+  lang = l;
+  document.getElementById('title').textContent = ui[l].title;
+  document.getElementById('subtitle').textContent = ui[l].sub;
+  document.getElementById('reveal').textContent = ui[l].btn;
+}
+
+const symbols = [
+  {en:"Imix (Crocodile)", sr:"Imix (Krokodil)", desc_en:"Imix brings you the power of beginnings. Today is perfect to start new adventures. Trust your instincts and embrace the flow of life.", desc_sr:"Imix donosi moć početaka. Danas je savršeno da započnete nove avanture. Verujte svom instinktu i prihvatite tok života.", wish_en:"May your day be filled with vitality.", wish_sr:"Neka ti dan bude pun vitalnosti."},
+  {en:"Ik (Wind)", sr:"Ik (Vetar)", desc_en:"Ik fills you with inspiration and communication. Let your ideas soar and connect with others freely.", desc_sr:"Ik vas ispunjava inspiracijom i komunikacijom. Neka vaše ideje lete i povežite se slobodno s drugima.", wish_en:"Breathe freely and share your ideas.", wish_sr:"Diši slobodno i deli svoje ideje."},
+  {en:"Akbal (Night)", sr:"Akbal (Noć)", desc_en:"Akbal guides through mystery and dreams. Explore your subconscious and find hidden treasures tonight.", desc_sr:"Akbal vodi kroz misteriju i snove. Istražite svoju podsvest i pronađite skrivene dragocenosti večeras.", wish_en:"May your dreams inspire you.", wish_sr:"Neka vas snovi inspirišu."},
+  {en:"Kan (Seed)", sr:"Kan (Seme)", desc_en:"Kan nurtures potential and growth. Plant ideas today that will blossom into success.", desc_sr:"Kan neguje potencijal i rast. Posadite ideje danas koje će procvetati u uspeh.", wish_en:"Grow with patience and joy.", wish_sr:"Rastite sa strpljenjem i radošću."},
+  {en:"Chicchan (Serpent)", sr:"Chicchan (Zmija)", desc_en:"Chicchan energizes your vitality and passion. Take bold steps and follow your instincts.", desc_sr:"Chicchan energizuje vašu vitalnost i strast. Preduzmite hrabre korake i sledite instinkt.", wish_en:"Embrace your inner fire.", wish_sr:"Prihvatite unutrašnju vatru."},
+  {en:"Cimi (Death)", sr:"Cimi (Smrt)", desc_en:"Cimi symbolizes transformation. Release old patterns to make room for new beginnings.", desc_sr:"Cimi simbolizuje transformaciju. Otpustite stare obrasce da napravite prostor za nove početke.", wish_en:"Let go and renew.", wish_sr:"Otpustite i obnovite se."},
+  {en:"Manik (Deer)", sr:"Manik (Jelen)", desc_en:"Manik brings harmony and healing. Connect with nature and nurture your wellbeing.", desc_sr:"Manik donosi harmoniju i isceljenje. Povežite se s prirodom i negujte svoje blagostanje.", wish_en:"Find peace in balance.", wish_sr:"Pronađi mir u ravnoteži."},
+  {en:"Lamat (Star)", sr:"Lamat (Zvezda)", desc_en:"Lamat inspires creativity and charm. Let your artistic side shine and attract opportunities.", desc_sr:"Lamat inspiriše kreativnost i šarm. Neka vaša umetnička strana zasija i privuče prilike.", wish_en:"Shine bright today.", wish_sr:"Sijaj danas."},
+  {en:"Muluk (Water)", sr:"Muluk (Voda)", desc_en:"Muluk flows with emotions and intuition. Listen to your feelings and let them guide you.", desc_sr:"Muluk teče s emocijama i intuicijom. Slušajte svoja osećanja i pustite ih da vas vode.", wish_en:"Go with the flow.", wish_sr:"Idite s tokom."},
+  {en:"Ok (Dog)", sr:"Ok (Pas)", desc_en:"Ok fosters loyalty and friendship. Reach out to those you care for and strengthen bonds.", desc_sr:"Ok neguje odanost i prijateljstvo. Obratite se onima do kojih vam je stalo i ojačajte veze.", wish_en:"Cherish your companions.", wish_sr:"Cenite svoje prijatelje."},
+  {en:"Chuen (Monkey)", sr:"Chuen (Majmun)", desc_en:"Chuen brings playfulness and creativity. Enjoy light moments and embrace humor.", desc_sr:"Chuen donosi zaigranost i kreativnost. Uživajte u lakim trenucima i prihvatite humor.", wish_en:"Laugh and create.", wish_sr:"Smejte se i stvarajte."},
+  {en:"Eb (Road)", sr:"Eb (Put)", desc_en:"Eb guides your path and choices. Consider your journey carefully and take mindful steps.", desc_sr:"Eb vodi vaš put i izbore. Pažljivo razmotrite svoje putovanje i preduzmite svesne korake.", wish_en:"Walk your path wisely.", wish_sr:"Hodaj mudro svojim putem."},
+  {en:"Ben (Reed)", sr:"Ben (Trska)", desc_en:"Ben strengthens growth and family. Nurture relationships and support your loved ones.", desc_sr:"Ben jača rast i porodicu. Negujte odnose i podržite svoje voljene.", wish_en:"Grow together with love.", wish_sr:"Rastite zajedno s ljubavlju."},
+  {en:"Ix (Jaguar)", sr:"Ix (Jaguar)", desc_en:"Ix calls for magic and intuition. Trust your inner guidance and explore mysteries.", desc_sr:"Ix poziva na magiju i intuiciju. Verujte svom unutrašnjem vodiču i istražujte misterije.", wish_en:"Discover hidden wonders.", wish_sr:"Otkrij skrivene čari."},
+  {en:"Men (Eagle)", sr:"Men (Orao)", desc_en:"Men opens vision and perspective. Rise above challenges and see the bigger picture.", desc_sr:"Men otvara viziju i perspektivu. Uzdižite se iznad izazova i sagledajte širu sliku.", wish_en:"Fly high and see clearly.", wish_sr:"Leti visoko i vidi jasno."},
+  {en:"Cib (Vulture)", sr:"Cib (Sveti lešinar)", desc_en:"Cib brings wisdom and reflection. Learn from the past and make insightful choices.", desc_sr:"Cib donosi mudrost i refleksiju. Učite iz prošlosti i donosite promišljene izbore.", wish_en:"Wisdom lights your path.", wish_sr:"Mudrost osvetljava tvoj put."},
+  {en:"Caban (Earth)", sr:"Caban (Zemlja)", desc_en:"Caban moves with progress and stability. Take steady steps and embrace change.", desc_sr:"Caban se kreće s napretkom i stabilnošću. Preduzmite postojane korake i prihvatite promene.", wish_en:"Ground yourself in strength.", wish_sr:"Uzemi koren u snazi."},
+  {en:"Etznab (Flint)", sr:"Etznab (Kremen)", desc_en:"Etznab shines truth and clarity. Cut through confusion and speak your mind.", desc_sr:"Etznab sija istinom i jasnoćom. Probijajte konfuziju i iznesite svoje mišljenje.", wish_en:"Be sharp and clear.", wish_sr:"Budi oštar i jasan."},
+  {en:"Cauac (Storm)", sr:"Cauac (Oluja)", desc_en:"Cauac brings cleansing and renewal. Release what no longer serves and embrace freedom.", desc_sr:"Cauac donosi čišćenje i obnovu. Otpustite ono što više ne služi i prihvatite slobodu.", wish_en:"Let the storm refresh you.", wish_sr:"Neka oluja osveži tvoje biće."},
+  {en:"Ahau (Sun)", sr:"Ahau (Sunce)", desc_en:"Ahau shines with light and completion. Celebrate your accomplishments and radiate joy.", desc_sr:"Ahau sija svetlom i završetkom. Proslavite svoja postignuća i zračite radošću.", wish_en:"Radiate warmth and happiness.", wish_sr:"Zrači toplinom i srećom."}
+];
+
+const cocktails = [
+  {name:"Sun Milk of the Spirits", comp:"Milk punch on tequila with Sagan-daila and chamomile"},
+  {name:"Hibiscus Flame", comp:"Rum on hibiscus, salted caramel, cherry liqueur, lemon"},
+  {name:"Banana Moon", comp:"Tequila on coconut & banana, soju, lemon"},
+  {name:"Emerald Breath", comp:"Gin, kiwi cordial, spinach, fresh mint"},
+  {name:"Golden Serpent", comp:"Gin, banana curry, suze, lemon"}
+];
+
+const symbolToCocktailIndex = [0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4];
+
+function calcIndexFromDate(dateStr){
+  const d = new Date(dateStr);
+  if(isNaN(d)) return null;
+  const base = new Date('1920-01-01T00:00:00');
+  const diffDays = Math.floor((d - base) / (1000*60*60*24));
+  return ((diffDays % 20) + 20) % 20;
+}
+
+function calculate(){
+  const val = document.getElementById('birthdate').value;
+  if(!val){ 
+    resultEl.style.display='block';
+    resultEl.innerHTML = lang==='en' ? "Please enter a valid date." : "Molimo unesite ispravan datum.";
+    return;
+  }
+  const idx = calcIndexFromDate(val);
+  const s = symbols[idx];
+  const c = cocktails[symbolToCocktailIndex[idx]];
+
+  resultEl.style.display='block';
+  resultEl.innerHTML = `
+    <div class="row"><span class="label">${ui[lang].out_symbol}:</span> ${lang==='en'?s.en:s.sr}</div>
+    <div class="row muted"><span class="label">${ui[lang].out_energy}:</span> ${lang==='en'?s.desc_en:s.desc_sr}</div>
+    <div class="row muted"><span class="label">${ui[lang].out_wish}:</span> ${lang==='en'?s.wish_en:s.wish_sr}</div>
+    <hr style="border:none;border-top:1px solid #555;margin:12px 0;">
+    <div class="row"><span class="label">${ui[lang].out_cocktail}:</span> ${c.name}</div>
+    <div class="row muted"><span class="label">${ui[lang].out_comp}:</span> ${c.comp}</div>
+  `;
+}
+
+const resultEl = document.getElementById('result');
+document.getElementById('reveal').addEventListener('click', calculate);
+setLang('en');
+</script>
 </body>
 </html>
